@@ -1,12 +1,10 @@
 {
     "env": {
         "browser": true,
-        "es2021": true,
         "node": true
     },
     "extends": [
-        "eslint:recommended",
-        "plugin:react/recommended"
+        "airbnb-base"
     ],
     "parserOptions": {
         "ecmaFeatures": {
@@ -19,21 +17,11 @@
         "react"
     ],
     "rules": {
-        "indent": [
-            "error",
-            "tab"
-        ],
-        "linebreak-style": [
-            "error",
-            "windows"
-        ],
+      "no-tabs": ["error", { "allowIndentationTabs": true }],
         "quotes": [
             "error",
             "single"
         ],
-        "semi": [
-            "error",
-            "never"
-        ]
+        "no-underscore-dangle": ["error", { "allow": ["_id"] }]
     }
 }
