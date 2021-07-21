@@ -12,7 +12,12 @@ module.exports.createCard = (req, res) => {
 
   Card.create({ name, link, owner: req.user._id })
     .then((card) => res.send({ data: card }))
-    .catch(() => { res.status(500).send({ message: 'Ошибка!' }); });
+    .catch((err) => { 
+      if(err.name === 'ValidationError'){
+        return res.status(400).send({ message: 'Ошибка валидации'})
+      }
+        res.status(500).send({ message: 'Ошибка!' }); 
+    });
 };
 
 module.exports.deleteCard = (req, res) => {
@@ -28,10 +33,13 @@ module.exports.deleteCard = (req, res) => {
         .then(() => { res.send({ data: card }); });
     })
     .catch((err) => {
-      if (err.statusCode === 404) {
+      if (err.name === 'CastError') {
+        res.status(400).send({ message: 'Неверные данные' });
+      } else if (err.statusCode === 404) {
         res.status(err.statusCode).send({ message: err.message });
+      } else {
+        res.status(500).send({ message: err.message });
       }
-      res.status(500).send({ message: err.message });
     });
 };
 
@@ -46,7 +54,7 @@ module.exports.setLike = (req, res) => {
     .then((card) => { res.send({ data: card }); })
     .catch((err) => {
       if (err.statusCode === 400) {
-        res.status(err.statusCode).send({ message: err.message });
+        return res.status(err.statusCode).send({ message: err.message });
       }
       res.status(500).send({ message: err.message });
     });
@@ -63,7 +71,7 @@ module.exports.removeLike = (req, res) => {
     .then((card) => { res.send({ data: card }); })
     .catch((err) => {
       if (err.statusCode === 400) {
-        res.status(err.statusCode).send({ message: err.message });
+        return res.status(err.statusCode).send({ message: err.message });
       }
       res.status(500).send({ message: err.message });
     });

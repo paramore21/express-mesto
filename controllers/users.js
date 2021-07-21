@@ -10,11 +10,6 @@ module.exports.createUser = (req, res) => {
   const { name, about, avatar } = req.body;
 
   User.create({ name, about, avatar })
-    .orFail(() => {
-      const error = new Error('Неверные данные');
-      error.statusCode = 400;
-      throw error;
-    })
     .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.statusCode === 400) {
