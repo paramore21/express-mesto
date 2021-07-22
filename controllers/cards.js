@@ -12,11 +12,11 @@ module.exports.createCard = (req, res) => {
 
   Card.create({ name, link, owner: req.user._id })
     .then((card) => res.send({ data: card }))
-    .catch((err) => { 
-      if(err.name === 'ValidationError'){
-        return res.status(400).send({ message: 'Ошибка валидации'})
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        return res.status(400).send({ message: 'Ошибка валидации' });
       }
-        res.status(500).send({ message: 'Ошибка!' }); 
+      res.status(500).send({ message: 'Ошибка!' });
     });
 };
 
@@ -29,8 +29,9 @@ module.exports.deleteCard = (req, res) => {
       throw error;
     })
     .then((card) => {
-      Card.deleteOne(card)
-        .then(() => { res.send({ data: card }); });
+      Card.deleteOne(card).then(() => {
+        res.send({ data: card });
+      });
     })
     .catch((err) => {
       if (err.name === 'CastError') {
@@ -45,15 +46,21 @@ module.exports.deleteCard = (req, res) => {
 
 module.exports.setLike = (req, res) => {
   const id = req.user._id;
-  Card.findByIdAndUpdate(req.params.cardId, { $addToSet: { likes: id } }, { new: true })
+  Card.findByIdAndUpdate(
+    req.params.cardId,
+    { $addToSet: { likes: id } },
+    { new: true },
+  )
     .orFail(() => {
-      const error = new Error('Неверные данные');
-      error.statusCode = 400;
+      const error = new Error('Карточка по данному id не найдена');
+      error.statusCode = 404;
       throw error;
     })
-    .then((card) => { res.send({ data: card }); })
+    .then((card) => {
+      res.send({ data: card });
+    })
     .catch((err) => {
-      if (err.statusCode === 400) {
+      if (err.statusCode === 404) {
         return res.status(err.statusCode).send({ message: err.message });
       }
       res.status(500).send({ message: err.message });

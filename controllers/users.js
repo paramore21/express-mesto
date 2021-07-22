@@ -50,8 +50,8 @@ module.exports.updateUser = (req, res) => {
     })
     .then((user) => { res.send({ data: user }); })
     .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(400).send({ message: 'Произошла ошибка' });
+      if (err.name === 'ValidationError') {
+        res.status(400).send({ message: 'Ошибка валидации' });
       } else if (err.statusCode === 404) {
         res.status(err.statusCode).send({ message: err.message });
       } else {
@@ -64,16 +64,12 @@ module.exports.updateAvatar = (req, res) => {
   const userId = req.user._id;
   const { avatar } = req.body;
   User.findByIdAndUpdate(userId, { avatar }, { new: true, runValidators: true })
-    .orFail(() => {
-      const error = new Error('Неверные данные');
-      error.statusCode = 400;
-      throw error;
-    })
     .then((data) => { res.send({ data }); })
     .catch((err) => {
-      if (err.statusCode === 400) {
-        res.status(err.statusCode).send({ message: err.message });
+      if (err.name === 'ValidationError') {
+        res.status(400).send({ message: 'Ошибка валидации' });
+      } else {
+        res.status(500).send({ message: err.message });
       }
-      res.status(500).send({ message: err.message });
     });
 };
