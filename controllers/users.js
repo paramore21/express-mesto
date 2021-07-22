@@ -12,10 +12,11 @@ module.exports.createUser = (req, res) => {
   User.create({ name, about, avatar })
     .then((user) => res.send({ data: user }))
     .catch((err) => {
-      if (err.statusCode === 400) {
-        res.status(err.statusCode).send({ message: err.message });
+      if (err.name === 'ValidationError') {
+        res.status(400).send({ message: 'Ошибка валидации' });
+      } else {
+        res.status(500).send({ message: err.message });
       }
-      res.status(500).send({ message: err.message });
     });
 };
 
@@ -44,14 +45,14 @@ module.exports.updateUser = (req, res) => {
   const { name, about } = req.body;
   User.findByIdAndUpdate(userId, { name, about }, { new: true, runValidators: true })
     .orFail(() => {
-      const error = new Error('Неверные данные');
-      error.statusCode = 400;
+      const error = new Error('Пользователь не найден');
+      error.statusCode = 404;
       throw error;
     })
     .then((user) => { res.send({ data: user }); })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(400).send({ message: 'Ошибка валидации' });
+        res.status(400).send({ message: 'Неверные данные' });
       } else if (err.statusCode === 404) {
         res.status(err.statusCode).send({ message: err.message });
       } else {

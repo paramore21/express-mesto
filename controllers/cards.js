@@ -60,10 +60,13 @@ module.exports.setLike = (req, res) => {
       res.send({ data: card });
     })
     .catch((err) => {
-      if (err.statusCode === 404) {
-        return res.status(err.statusCode).send({ message: err.message });
+      if (err.name === 'CastError') {
+        res.status(400).send({ message: 'Неверные данные' });
+      } else if (err.statusCode === 404) {
+        res.status(err.statusCode).send({ message: err.message });
+      } else {
+        res.status(500).send({ message: err.message });
       }
-      res.status(500).send({ message: err.message });
     });
 };
 
@@ -72,14 +75,17 @@ module.exports.removeLike = (req, res) => {
   Card.findByIdAndUpdate(req.params.cardId, { $pull: { likes: id } }, { new: true })
     .orFail(() => {
       const error = new Error('Неверные данные');
-      error.statusCode = 400;
+      error.statusCode = 404;
       throw error;
     })
     .then((card) => { res.send({ data: card }); })
     .catch((err) => {
-      if (err.statusCode === 400) {
-        return res.status(err.statusCode).send({ message: err.message });
+      if (err.name === 'CastError') {
+        res.status(400).send({ message: 'Неверные данные' });
+      } else if (err.statusCode === 404) {
+        res.status(err.statusCode).send({ message: err.message });
+      } else {
+        res.status(500).send({ message: err.message });
       }
-      res.status(500).send({ message: err.message });
     });
 };
