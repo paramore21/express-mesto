@@ -1,7 +1,9 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 
-const { NODE_ENV, JWT_SECRET } = process.env;
+const {
+  JWT_SECRET = 'DEFAULT_JWT_SECRET'
+} = process.env;
 
 module.exports.getUsers = (req, res) => {
   User.find({})
@@ -83,11 +85,17 @@ module.exports.updateAvatar = (req, res) => {
 };
 
 module.exports.login = (req, res) => {
-  const {email, password} = req.body;
-
+  const {
+    email,
+    password
+  } = req.body;
   return User.findUserByCredentials(email, password)
   .then(user => {
-    const token = jwt.sign({_id: user._id}, NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret', {expiresIn: '7d'})
+    const token = jwt.sign({
+      _id: user._id
+    }, JWT_SECRET, {
+      expiresIn: '7d'
+    })
     
     res.send({token})
   })
