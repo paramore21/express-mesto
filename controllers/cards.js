@@ -1,3 +1,4 @@
+const { celebrate, Joi } = require('celebrate');
 const Card = require('../models/card');
 
 module.exports.getCards = (req, res) => {

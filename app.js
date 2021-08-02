@@ -1,8 +1,9 @@
+require('dotenv').config()
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 
-const { PORT = 3000 } = process.env;
+const { PORT = 3000, JWT_SECRET } = process.env;
 const app = express();
 
 app.use(bodyParser.json());

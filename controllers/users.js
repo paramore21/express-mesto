@@ -1,3 +1,4 @@
+const jwt = require('jsonwebtoken')
 const User = require('../models/user');
 
 module.exports.getUsers = (req, res) => {
@@ -7,17 +8,21 @@ module.exports.getUsers = (req, res) => {
 };
 
 module.exports.createUser = (req, res) => {
-  const { name, about, avatar } = req.body;
+  const { name, about, avatar, email, password } = req.body;
 
-  User.create({ name, about, avatar })
-    .then((user) => res.send({ data: user }))
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(400).send({ message: 'Ошибка валидации' });
-      } else {
-        res.status(500).send({ message: err.message });
-      }
-    });
+  bcrypt.hash(password, 10)
+  .then(hash => {
+    User.create({ name, about, avatar, email, password: hash })
+      .then((user) => res.send({ data: user }))
+      .catch((err) => {
+        if (err.name === 'ValidationError') {
+          res.status(400).send({ message: 'Ошибка валидации' });
+        } else {
+          res.status(500).send({ message: err.message });
+        }
+      });
+    
+  })
 };
 
 module.exports.getUser = (req, res) => {
@@ -74,3 +79,12 @@ module.exports.updateAvatar = (req, res) => {
       }
     });
 };
+
+module.exports.login = (req, res) => {
+  const {email, password} = req.body
+
+  return User.findUserByCredentials(email, password)
+  .then(user => {
+    const token = jwt.sign({_id: user._id}, {expiresIn: '7d'})
+  })
+}
