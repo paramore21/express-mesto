@@ -2,9 +2,13 @@ require('dotenv').config()
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
+const auth = require('./middlewares/auth');
+const cookieParser = require('cookie-parser');
 
 const { PORT = 3000, JWT_SECRET } = process.env;
 const app = express();
+
+app.use(cookieParser());
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -16,13 +20,11 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
   useUnifiedTopology: true,
 });
 
-app.use((req, res, next) => {
-  req.user = {
-    _id: '60f5c2c6085bed1d2473658e',
-  };
+app.post('/signup', require('./routes/users'));
+app.post('/signin', require('.routes/users'));
 
-  next();
-});
+
+app.use(auth);
 
 app.use('/', require('./routes/users'));
 
