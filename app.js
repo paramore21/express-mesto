@@ -1,14 +1,12 @@
-require('dotenv').config()
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
+const { errors } = require('celebrate');
 const auth = require('./middlewares/auth');
-const cookieParser = require('cookie-parser');
 
-const { PORT = 3000, JWT_SECRET } = process.env;
+const { PORT = 3000 } = process.env;
 const app = express();
-
-app.use(cookieParser());
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -20,9 +18,19 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
   useUnifiedTopology: true,
 });
 
-app.post('/signup', require('./routes/users'));
-app.post('/signin', require('.routes/users'));
+app.use(errors());
 
+const { login, createUser } = require('./controllers/users');
+
+app.post('/signin', login);
+app.post('/signup', celebrate({
+  body: Joi.object().keys({
+  email: Joi.string().required().email(),
+  password: Joi.string().required().min(8),
+  name: Joi.string().required().min(2).max(30),
+  about: Joi.string().min(2).max(30),
+  avatar: 
+})}, createUser);
 
 app.use(auth);
 

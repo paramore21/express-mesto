@@ -1,9 +1,8 @@
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 
-const {
-  JWT_SECRET = 'DEFAULT_JWT_SECRET'
-} = process.env;
+const { JWT_SECRET = 'DEFAULT_JWT_SECRET' } = process.env;
 
 module.exports.getUsers = (req, res) => {
   User.find({})
@@ -14,8 +13,7 @@ module.exports.getUsers = (req, res) => {
 module.exports.createUser = (req, res) => {
   const { name, about, avatar, email, password } = req.body;
 
-  bcrypt.hash(password, 10)
-  .then(hash => {
+  bcrypt.hash(password, 10).then((hash) => {
     User.create({ name, about, avatar, email, password: hash })
       .then((user) => res.send({ data: user }))
       .catch((err) => {
@@ -25,8 +23,7 @@ module.exports.createUser = (req, res) => {
           res.status(500).send({ message: err.message });
         }
       });
-    
-  })
+  });
 };
 
 module.exports.getUser = (req, res) => {
@@ -52,13 +49,19 @@ module.exports.getUser = (req, res) => {
 module.exports.updateUser = (req, res) => {
   const userId = req.user._id;
   const { name, about } = req.body;
-  User.findByIdAndUpdate(userId, { name, about }, { new: true, runValidators: true })
+  User.findByIdAndUpdate(
+    userId,
+    { name, about },
+    { new: true, runValidators: true }
+  )
     .orFail(() => {
       const error = new Error('Пользователь не найден');
       error.statusCode = 404;
       throw error;
     })
-    .then((user) => { res.send({ data: user }); })
+    .then((user) => {
+      res.send({ data: user });
+    })
     .catch((err) => {
       if (err.name === 'ValidationError') {
         res.status(400).send({ message: 'Неверные данные' });
@@ -74,7 +77,9 @@ module.exports.updateAvatar = (req, res) => {
   const userId = req.user._id;
   const { avatar } = req.body;
   User.findByIdAndUpdate(userId, { avatar }, { new: true, runValidators: true })
-    .then((data) => { res.send({ data }); })
+    .then((data) => {
+      res.send({ data });
+    })
     .catch((err) => {
       if (err.name === 'ValidationError') {
         res.status(400).send({ message: 'Ошибка валидации' });
@@ -85,21 +90,16 @@ module.exports.updateAvatar = (req, res) => {
 };
 
 module.exports.login = (req, res) => {
-  const {
-    email,
-    password
-  } = req.body;
+  const { email, password } = req.body;
   return User.findUserByCredentials(email, password)
-  .then(user => {
-    const token = jwt.sign({
-      _id: user._id
-    }, JWT_SECRET, {
-      expiresIn: '7d'
+    .then((user) => {
+      const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
+        expiresIn: '7d',
+      });
+
+      res.send({ token });
     })
-    
-    res.send({token})
-  })
-  .catch(err => {
-    res.status(401).send({message: err.message})
-  })
-}
+    .catch((err) => {
+      res.status(401).send({ message: err.message });
+    });
+};
