@@ -23,6 +23,7 @@ module.exports.createCard = (req, res) => {
 
 module.exports.deleteCard = (req, res) => {
   const { cardId } = req.params;
+  const {ownerId} = req.user._id
   Card.findById(cardId)
     .orFail(() => {
       const error = new Error('Карточка по данному id не найдена');
@@ -30,9 +31,13 @@ module.exports.deleteCard = (req, res) => {
       throw error;
     })
     .then((card) => {
-      Card.deleteOne(card).then(() => {
-        res.send({ data: card });
-      });
+      if (ownerId === card.owner._id) {
+        Card.deleteOne(card).then(() => {
+          res.send({ data: card });
+        });
+      } else {
+        res.status(401).send({ message: 'Недостаточно прав' });
+      }
     })
     .catch((err) => {
       if (err.name === 'CastError') {

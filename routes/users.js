@@ -15,6 +15,7 @@ router.post('/users', celebrate({
   }),
 }), createUser);
 
+router.get('/users/me', getUser);
 router.get('/users/:userId', getUser);
 
 router.patch('/users/me', updateUser);
