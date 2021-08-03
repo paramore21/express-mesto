@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
-const { errors } = require('celebrate');
+const { errors, celebrate, Joi } = require('celebrate');
 const auth = require('./middlewares/auth');
 
 const { PORT = 3000 } = process.env;
@@ -22,15 +22,8 @@ app.use(errors());
 
 const { login, createUser } = require('./controllers/users');
 
+app.post('/signup', createUser);
 app.post('/signin', login);
-app.post('/signup', celebrate({
-  body: Joi.object().keys({
-  email: Joi.string().required().email(),
-  password: Joi.string().required().min(8),
-  name: Joi.string().required().min(2).max(30),
-  about: Joi.string().min(2).max(30),
-  avatar: 
-})}, createUser);
 
 app.use(auth);
 

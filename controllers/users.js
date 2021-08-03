@@ -1,4 +1,4 @@
-const bcrypt = require('bcryptjs');
+const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 
@@ -15,7 +15,9 @@ module.exports.createUser = (req, res) => {
 
   bcrypt.hash(password, 10).then((hash) => {
     User.create({ name, about, avatar, email, password: hash })
-      .then((user) => res.send({ data: user }))
+      .then((user) => {
+        res.send({ _id: user._id });
+      })
       .catch((err) => {
         if (err.name === 'ValidationError') {
           res.status(400).send({ message: 'Ошибка валидации' });
@@ -24,26 +26,6 @@ module.exports.createUser = (req, res) => {
         }
       });
   });
-};
-
-module.exports.getUser = (req, res) => {
-  const { userId } = req.params;
-  User.findById(userId)
-    .orFail(() => {
-      const error = new Error('Пользователь по указанному id не найден');
-      error.statusCode = 404;
-      throw error;
-    })
-    .then((user) => res.send({ data: user }))
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(400).send({ message: 'Произошла ошибка' });
-      } else if (err.statusCode === 404) {
-        res.status(err.statusCode).send({ message: err.message });
-      } else {
-        res.status(500).send({ message: err.message });
-      }
-    });
 };
 
 module.exports.updateUser = (req, res) => {
@@ -96,10 +78,28 @@ module.exports.login = (req, res) => {
       const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
         expiresIn: '7d',
       });
-
       res.send({ token });
     })
     .catch((err) => {
       res.status(401).send({ message: err.message });
+    });
+};
+
+module.exports.getUser = (req, res) => {
+  User.findById(req.user._id)
+    .orFail(() => {
+      const error = new Error('Пользователь по указанному id не найден');
+      error.statusCode = 404;
+      throw error;
+    })
+    .then((user) => res.send(user))
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        res.status(400).send({ message: 'Произошла ошибка' });
+      } else if (err.statusCode === 404) {
+        res.status(err.statusCode).send({ message: err.message });
+      } else {
+        res.status(500).send({ message: err.message });
+      }
     });
 };
