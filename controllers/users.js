@@ -89,11 +89,17 @@ module.exports.login = (req, res) => {
 module.exports.getUser = (req, res) => {
   User.findById(req.user._id)
     .orFail(() => {
+      // throw New NotFound('Пользователь по указанному id не найден)
       const error = new Error('Пользователь по указанному id не найден');
       error.statusCode = 404;
       throw error;
     })
-    .then((user) => res.send(user))
+    .then((user) => {
+      // if (!user) {
+      //   throw New BadRequest('Произошла ошибка')
+      // }
+      res.send(user)
+    })
     .catch((err) => {
       if (err.name === 'CastError') {
         res.status(400).send({ message: 'Произошла ошибка' });
