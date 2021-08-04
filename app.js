@@ -31,6 +31,12 @@ app.use('/', require('./routes/users'));
 
 app.use('/cards', require('./routes/cards'));
 
+
+app.use((err, req, res, next) => {
+  res.status(500).send({ message: 'На сервере произошла ошибка' });
+});
+
+
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);
 });

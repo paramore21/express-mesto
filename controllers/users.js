@@ -1,30 +1,31 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
+const NoAuth = require('../errors/no-auth');
+const BadRequest = require('../errors/bad-request');
+const NotFound = require('../errors/not-found');
 
 const { JWT_SECRET = 'DEFAULT_JWT_SECRET' } = process.env;
 
-module.exports.getUsers = (req, res) => {
+module.exports.getUsers = (req, res, next) => {
   User.find({})
     .then((users) => res.send({ data: users }))
-    .catch((err) => res.status(500).send({ message: err.message }));
+    .catch(next)  
+    // .catch((err) => res.status(500).send({ message: err.message }));
 };
 
-module.exports.createUser = (req, res) => {
+module.exports.createUser = (req, res, next) => {
   const { name, about, avatar, email, password } = req.body;
 
   bcrypt.hash(password, 10).then((hash) => {
     User.create({ name, about, avatar, email, password: hash })
       .then((user) => {
+        if (!user) {
+          throw new BadRequest('Пользователь не найден');
+        };
         res.send({ _id: user._id });
       })
-      .catch((err) => {
-        if (err.name === 'ValidationError') {
-          res.status(400).send({ message: 'Ошибка валидации' });
-        } else {
-          res.status(500).send({ message: err.message });
-        }
-      });
+      .catch(next);
   });
 };
 
