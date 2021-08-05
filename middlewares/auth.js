@@ -1,6 +1,5 @@
-const NoAuth = require('../errors/no-auth')
 const jwt = require('jsonwebtoken');
-
+const NoAuth = require('../errors/no-auth');
 
 const { JWT_SECRET = 'DEFAULT_JWT_SECRET' } = process.env;
 
@@ -15,10 +14,7 @@ module.exports = (req, res, next) => {
   try {
     payload = jwt.verify(token, JWT_SECRET);
   } catch (e) {
-    const err = new Error('Необходима авторизация'); 
-    err.statusCode = 401;
-
-    next(err);
+    throw new NoAuth('Необходима авторизация');
   }
   req.user = payload;
   next();
