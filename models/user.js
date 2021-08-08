@@ -1,6 +1,7 @@
 const { isEmail, isURL } = require('validator');
 const bcrypt = require('bcrypt');
 const mongoose = require('mongoose');
+const BadRequest = require('../errors/bad-request');
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -22,8 +23,9 @@ const userSchema = new mongoose.Schema({
       validator: (v) => isURL(v),
       message: 'Неверный формат ссылки',
       // правильно ли валидировать url таким образом? Закомментировала, потому что не уверена
+      // по идее \w реагирует и на пробелы, то есть если в ссылке будет пробел, то такая регулярка будет считать url корректным
       // validator(url) {
-      //   return /^https?:\/\/(www\.)?[\w&-\/\!\$\\:\[\]\@\?\~\#\;\=]+#?$/gm.test(url);
+      //   return /^(https?:\/\/)?([\da-z\\.-]+)\.([a-z\\.]{2,6})([\\/\w \\.-]*)*\/?$/;
       // },
     },
   },
@@ -42,21 +44,5 @@ const userSchema = new mongoose.Schema({
     select: false,
   },
 });
-
-userSchema.statics.findUserByCredentials = function(email, password) {
-  return this.findOne({ email }).select('+password')
-    .then((user) => {
-      if (!user) {
-        return Promise.reject(new Error('Неверная почта или пароль'));
-      }
-      return bcrypt.compare(password, user.password)
-        .then((matched) => {
-          if (!matched) {
-            return Promise.reject(new Error('Неверная почта или пароль'));
-          }
-          return user._id;
-        });
-    });
-};
 
 module.exports = mongoose.model('user', userSchema);

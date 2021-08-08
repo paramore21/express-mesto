@@ -1,8 +1,8 @@
-const { celebrate, Joi } = require('celebrate');
 const Card = require('../models/card');
 const NoAuth = require('../errors/no-auth');
 const BadRequest = require('../errors/bad-request');
 const NotFound = require('../errors/not-found');
+const Forbidden = require('../errors/forbidden')
 
 module.exports.getCards = (req, res, next) => {
   Card.find({})
@@ -21,7 +21,7 @@ module.exports.createCard = (req, res, next) => {
       }
       res.send({ data: card });
     })
-    .catch(next);
+    .catch((err) => next(err));
 };
 
 module.exports.deleteCard = (req, res, next) => {
@@ -40,10 +40,10 @@ module.exports.deleteCard = (req, res, next) => {
           res.send({ data: card });
         });
       } else {
-        throw new NoAuth('Недостаточно прав');
+        throw new Forbidden('Недостаточно прав');
       }
     })
-    .catch(next);
+    .catch((err) => next(err));
 };
 
 module.exports.setLike = (req, res, next) => {
@@ -62,7 +62,7 @@ module.exports.setLike = (req, res, next) => {
       }
       res.send({ data: card });
     })
-    .catch(next);
+    .catch((err) => next(err));
 };
 
 module.exports.removeLike = (req, res, next) => {
@@ -77,5 +77,5 @@ module.exports.removeLike = (req, res, next) => {
       }
       res.send({ data: card });
     })
-    .catch(next);
+    .catch((err) => next(err));
 };

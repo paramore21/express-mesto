@@ -13,24 +13,39 @@ module.exports.getUsers = (req, res, next) => {
 };
 
 module.exports.createUser = (req, res, next) => {
-  const { name, about, avatar, email, password } = req.body;
+  const {
+    name, about, avatar, email, password,
+  } = req.body;
 
+  User.findOne({ email }).then((findedUser) => {
+    if (findedUser) {
+      res
+        .status(409)
+        .send({ message: 'Такой пользователь уже зарегистрирован.' });
+    }
+  });
   bcrypt.hash(password, 10).then((hash) => {
-    User.create({ name, about, avatar, email, password: hash })
+    User.create({
+      name, about, avatar, email, password: hash,
+    })
       .then((user) => {
         if (!user) {
-          throw new BadRequest('Пользователь не найден');
+          next(new BadRequest('Пользователь не найден'));
         }
         res.send({ _id: user._id });
       })
-      .catch(next);
+      .catch((err) => next(err));
   });
 };
 
 module.exports.updateUser = (req, res, next) => {
   const userId = req.user._id;
   const { name, about } = req.body;
-  User.findByIdAndUpdate(userId, { name, about }, { new: true, runValidators: true })
+  User.findByIdAndUpdate(
+    userId,
+    { name, about },
+    { new: true, runValidators: true }
+  )
     .orFail(() => {
       throw new NotFound('Пользователь не найден');
     })
@@ -40,7 +55,7 @@ module.exports.updateUser = (req, res, next) => {
       }
       res.send({ data: user });
     })
-    .catch(next);
+    .catch((err) => next(err));
 };
 
 module.exports.updateAvatar = (req, res, next) => {
@@ -53,21 +68,31 @@ module.exports.updateAvatar = (req, res, next) => {
       }
       res.send({ data });
     })
-    .catch(next);
+    .catch((err) => next(err));
 };
 
-module.exports.login = (req, res) => {
+module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
-  return User.findUserByCredentials(email, password)
-    .then((user) => {
-      const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
-        expiresIn: '7d',
-      });
-      res.send({ token });
+
+  if (!email || !password) {
+    throw new NotFound('Пользователь не найден');
+  }
+  User.findOne({ email }).select('+password')
+    .orFail(() => {
+      throw new BadRequest('Неверная почта или пароль');
     })
-    .catch((err) => {
-      res.status(401).send({ message: err.message });
-    });
+    .then((user) => {
+      bcrypt.compare(password, user.password)
+        .then((matched) => {
+          if (!matched) {
+            throw new BadRequest('Неверная почта или пароль');
+          }
+          const token = jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: '7d' });
+          res.send({ token });
+        })
+        .catch((err) => next(err));
+    })
+    .catch(next);
 };
 
 module.exports.getUser = (req, res, next) => {
@@ -81,5 +106,5 @@ module.exports.getUser = (req, res, next) => {
       }
       res.send(user);
     })
-    .catch(next);
+    .catch((err) => next(err));
 };
