@@ -1,7 +1,5 @@
 const { isEmail, isURL } = require('validator');
-const bcrypt = require('bcrypt');
 const mongoose = require('mongoose');
-const BadRequest = require('../errors/bad-request');
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -20,13 +18,8 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
     validate: {
-      validator: (v) => isURL(v),
+      validator: (v) => isURL(v, { require_protocol: true }),
       message: 'Неверный формат ссылки',
-      // правильно ли валидировать url таким образом? Закомментировала, потому что не уверена
-      // по идее \w реагирует и на пробелы, то есть если в ссылке будет пробел, то такая регулярка будет считать url корректным
-      // validator(url) {
-      //   return /^(https?:\/\/)?([\da-z\\.-]+)\.([a-z\\.]{2,6})([\\/\w \\.-]*)*\/?$/;
-      // },
     },
   },
   email: {

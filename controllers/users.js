@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const BadRequest = require('../errors/bad-request');
 const NotFound = require('../errors/not-found');
+const NoAuth = require('../errors/no-auth');
 
 const { JWT_SECRET = 'DEFAULT_JWT_SECRET' } = process.env;
 
@@ -44,7 +45,7 @@ module.exports.updateUser = (req, res, next) => {
   User.findByIdAndUpdate(
     userId,
     { name, about },
-    { new: true, runValidators: true }
+    { new: true, runValidators: true },
   )
     .orFail(() => {
       throw new NotFound('Пользователь не найден');
@@ -79,13 +80,13 @@ module.exports.login = (req, res, next) => {
   }
   User.findOne({ email }).select('+password')
     .orFail(() => {
-      throw new BadRequest('Неверная почта или пароль');
+      throw new NoAuth('Неверная почта или пароль');
     })
     .then((user) => {
       bcrypt.compare(password, user.password)
         .then((matched) => {
           if (!matched) {
-            throw new BadRequest('Неверная почта или пароль');
+            throw new NoAuth('Неверная почта или пароль');
           }
           const token = jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: '7d' });
           res.send({ token });
@@ -105,6 +106,21 @@ module.exports.getUser = (req, res, next) => {
         throw new BadRequest('Произошла ошибка');
       }
       res.send(user);
+    })
+    .catch((err) => next(err));
+};
+
+module.exports.getUserById = (req, res, next) => {
+  const { userId } = req.params;
+  User.findById(userId)
+    .orFail(() => {
+      throw new NotFound('Пользователь по указанному id не найден');
+    })
+    .then((user) => {
+      if (!user) {
+        throw new BadRequest('Произошла ошибка');
+      }
+      res.send({ data: user });
     })
     .catch((err) => next(err));
 };

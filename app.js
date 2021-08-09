@@ -3,6 +3,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const { errors, celebrate, Joi } = require('celebrate');
+const { isURL } = require('validator');
 const auth = require('./middlewares/auth');
 const NotFound = require('./errors/not-found');
 
@@ -28,7 +29,7 @@ app.post(
       email: Joi.string().required().email(),
       password: Joi.string().required().min(8),
       name: Joi.string().min(2).max(30),
-      avatar: Joi.string().min(2).max(30),
+      avatar: { validator: (v) => isURL(v, { require_protocol: true }) },
       about: Joi.string().min(2).max(30),
     }),
   }),
