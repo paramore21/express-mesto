@@ -20,7 +20,9 @@ updateUser);
 
 router.patch('/users/me/avatar', celebrate({
   body: Joi.object().keys({
-    avatar: { validator: (v) => isURL(v, { require_protocol: true }) },
+    // ошибка была в этом месте, avatar был объектом модуля validator. Решила оставить проверку по регулярке.
+    avatar: Joi.string().required()
+      .regex(/^(https?:\/\/)?([\da-z\\.-]+)\.([a-z\\.]{2,6})([\\/\w \\.-]*)*\/?$/),
   }),
 }),
 updateAvatar);
