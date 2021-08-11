@@ -1,6 +1,5 @@
 const router = require('express').Router();
 const { celebrate, Joi } = require('celebrate');
-const { isURL } = require('validator');
 
 const {
   getUsers, getUser, updateUser, updateAvatar, getUserById,
@@ -20,7 +19,8 @@ updateUser);
 
 router.patch('/users/me/avatar', celebrate({
   body: Joi.object().keys({
-    // ошибка была в этом месте, avatar был объектом модуля validator. Решила оставить проверку по регулярке.
+  // ошибка была в этом месте, avatar был объектом модуля validator.
+  // Решила оставить проверку по регулярке.
     avatar: Joi.string().required()
       .regex(/^(https?:\/\/)?([\da-z\\.-]+)\.([a-z\\.]{2,6})([\\/\w \\.-]*)*\/?$/),
   }),

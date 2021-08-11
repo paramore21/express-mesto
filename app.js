@@ -6,6 +6,7 @@ const { errors, celebrate, Joi } = require('celebrate');
 const { isURL } = require('validator');
 const auth = require('./middlewares/auth');
 const NotFound = require('./errors/not-found');
+const { requestLogger, errorLogger } = require('./middlewares/logger');
 
 const { PORT = 3000 } = process.env;
 const app = express();
@@ -20,6 +21,7 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
   useUnifiedTopology: true,
 });
 
+app.use(requestLogger);
 const { login, createUser } = require('./controllers/users');
 
 app.post(
@@ -56,6 +58,8 @@ app.use('/cards', require('./routes/cards'));
 app.use('*', (req, res, next) => {
   next(new NotFound('Страница не найдена'));
 });
+
+app.use(errorLogger);
 app.use(errors());
 app.use((err, req, res, next) => {
   const { statusCode = 500, message } = err;
